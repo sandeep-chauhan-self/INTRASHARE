@@ -8,8 +8,10 @@ import ContextMenu from "../common/ContextMenu";
 
 export default function ChatListHeader() {
   const [{ userInfo }, dispatch] = useStateProvider();
+  const storedUserInfo = JSON.parse(localStorage.getItem('userInfo'));
+  const isAdmin = storedUserInfo.isAdmin;
   const router = useRouter();
-  const [contextMenuCordinates, setContextMenuCordinates] = useState({
+  const [contextMenuCoordinates, setContextMenuCoordinates] = useState({
     x: 0,
     y: 0,
   });
@@ -17,17 +19,33 @@ export default function ChatListHeader() {
 
   const showContextMenu = (e) => {
     e.preventDefault();
-    setContextMenuCordinates({ x: e.pageX, y: e.pageY });
+    setContextMenuCoordinates({ x: e.pageX -69 , y: e.pageY + 20 });
     setIsContextMenuVisible(true);
   };
 
-  const contextMenuOptions = [
+  const openAdminPageInNewTab = () => {
+    // Open the Admin page in a new tab
+    window.open('/admin', '_blank');
+    setIsContextMenuVisible(false); 
+  };
+
+  console.log("isAdmin",isAdmin);
+   
+  // Ensuring isAdmin is defined and accessible
+  const contextMenuOptions = isAdmin ? [
     {
       name: "Admin",
+      callBack: openAdminPageInNewTab,
+    },
+    {
+      name: "Logout",
       callBack: async () => {
         setIsContextMenuVisible(false);
-        router.push("/Admin");
+        router.push("/logout");
       },
+    },
+  ] : [
+    {
       name: "Logout",
       callBack: async () => {
         setIsContextMenuVisible(false);
@@ -43,7 +61,7 @@ export default function ChatListHeader() {
   return (
     <div style={{backgroundColor: "#485778"}} className="h-16 px-4 py-3 flex justify-between items-center">
       <div className="cursor-pointer">
-        <Avatar type="sm" image={userInfo?.profileImage} />
+        <Avatar type="sm" image={userInfo?.profilePicture} />
       </div>
       <div className="flex gap-6 ">
         <BsFillChatLeftTextFill
@@ -62,7 +80,7 @@ export default function ChatListHeader() {
             <ContextMenu
               key="contextMenu"
               options={contextMenuOptions}
-              cordinates={contextMenuCordinates}
+              coordinates={contextMenuCoordinates} // Corrected prop name to "coordinates"
               contextMenu={isContextMenuVisible}
               setContextMenu={setIsContextMenuVisible}
             />

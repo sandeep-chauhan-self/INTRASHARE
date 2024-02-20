@@ -11,6 +11,7 @@ import { GET_MESSAGES_ROUTE, HOST } from "@/utils/ApiRoutes";
 import Empty from "./Empty";
 import LoadingSpinner from "./common/LoadingSpinner";
 import SearchMessages from "./Chat/SearchMessages";
+import { CHECK_USER_ROUTE } from "@/utils/ApiRoutes";
 
 export default function Main() {
   const [
@@ -22,6 +23,8 @@ export default function Main() {
     },
     dispatch,
   ] = useStateProvider(); 
+
+  console.log("userinfo on main page", userInfo);
   
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -31,15 +34,28 @@ export default function Main() {
   useEffect(() => {
     const redirectIfNotLoggedIn = async () => {
       try {
-        if (userInfo === undefined) {
+        const storedUserInfo = JSON.parse(localStorage.getItem('userInfo'));
+        const password = JSON.parse(localStorage.getItem('userPassword'));
+        const eId = storedUserInfo.eId;
+        const data = await axios.post(CHECK_USER_ROUTE, { eId, password });
+
+        dispatch({ type: reducerCases.SET_USER_INFO, userInfo: storedUserInfo });
+        console.log("storedUserInfo.isActive", storedUserInfo.isActive);
+        if (!storedUserInfo || storedUserInfo === "undefined") {
           await router.push("/login");
-        } else{
-          socket.current = io(HOST);
-          socket.current.emit("add-user", userInfo.id);
-          dispatch({ type: reducerCases.SET_SOCKET, socket });
-          setLoading(false);
+          return;
+        }
+        if(!data.data.status){
+          await router.push("/logout");
+          return;
         }
 
+        console.log("storedUserInfo", storedUserInfo);
+
+          setLoading(false);
+          socket.current = io(HOST);
+          socket.current.emit("add-user", storedUserInfo.id);
+          dispatch({ type: reducerCases.SET_SOCKET, socket });
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -47,7 +63,7 @@ export default function Main() {
     };
 
     redirectIfNotLoggedIn();
-  }, [userInfo]);
+  }, []);
 
   useEffect(() => {
     if (socket.current && !socketEvent) {

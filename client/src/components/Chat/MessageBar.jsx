@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { BsEmojiSmile } from "react-icons/bs";
-import { ImAttachment } from "react-icons/im";
+import { IoDocumentAttach } from "react-icons/io5";
 import { FaMicrophone } from "react-icons/fa";
 import { MdSend } from "react-icons/md";
 import { useStateProvider } from "@/context/StateContext";
@@ -128,6 +128,14 @@ export default function MessageBar() {
     }
   }, [grabImage]);
 
+  //Enter button
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
   return (
     <div className="bg-panel-header-background  h-20 px-4 flex items-center gap-6  relative">
       {!showAudioRecorder && (
@@ -147,9 +155,9 @@ export default function MessageBar() {
                 <EmojiPicker onEmojiClick={handleEmojiClick} theme="dark" />
               </div>
             )}
-            <ImAttachment
+            <IoDocumentAttach
               className="text-panel-header-icon cursor-pointer text-xl"
-              title="Attach"
+              title="document"
               onClick={() => setGrabImage(true)}
             />
           </div>
@@ -160,6 +168,7 @@ export default function MessageBar() {
               className="bg-textfield-bar text-sm focus:outline-none text-testfield-text h-10 rounded-lg pl-5 pr-5 py-4 w-full"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}//for nenter button to work
             />
           </div>
           <div className=" w-10 flex items-center justify-center">
@@ -175,7 +184,7 @@ export default function MessageBar() {
                 className="text-panel-header-icon cursor-pointer text-xl"
                 title="Record"
                 onClick={() => setShowAudioRecorder(true)}
-              />
+              /> 
             )}
           </div>
         </>

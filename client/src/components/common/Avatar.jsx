@@ -13,7 +13,7 @@ export default function Avatar({ type, image, setImage }) {
   const [isContextMenuVisible, setIsContextMenuVisible] = useState(false);
   const [isFirstRun, setIsFirstRun] = useState(true);
   const [showCapturePhoto, setShowCapturePhoto] = useState(false);
-  const [contextMenuCordinates, setContextMenuCordinates] = useState({
+  const [contextMenucoordinates, setContextMenucoordinates] = useState({
     x: 0,
     y: 0,
   });
@@ -54,7 +54,9 @@ export default function Avatar({ type, image, setImage }) {
       const data = document.getElementById("photo-picker");
       data.click();
       document.body.onfocus = (e) => {
-        setGrabImage(false);
+        setTimeout(()=> {
+          
+        }, 1000)
       };
     }
   }, [grabImage]);
@@ -74,7 +76,7 @@ export default function Avatar({ type, image, setImage }) {
 
   const showContextMenu = (e) => {
     e.preventDefault();
-    setContextMenuCordinates({ x: e.pageX, y: e.pageY });
+    setContextMenucoordinates({ x: e.pageX, y: e.pageY });
     setIsContextMenuVisible(true);
   };
 
@@ -89,6 +91,7 @@ export default function Avatar({ type, image, setImage }) {
     reader.readAsDataURL(file);
     setTimeout(() => {
       setImage(data.src);
+      setGrabImage(false);
     }, 100);
   };
 
@@ -140,7 +143,7 @@ export default function Avatar({ type, image, setImage }) {
       {isContextMenuVisible && (
         <ContextMenu
           options={contextMenuOptions}
-          cordinates={contextMenuCordinates}
+          coordinates={contextMenucoordinates}
           contextMenu={isContextMenuVisible}
           setContextMenu={setIsContextMenuVisible}
         />

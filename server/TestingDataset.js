@@ -2,16 +2,17 @@ import faker from "faker";
 import fs from "fs";
 
 const generateUsers = (count) => {
+
   const users = [];
 
-  for (let i = 0; i < count; i++) {
+  for (let i = 1; i <= count; i++) {
     const user = {
       eId: i.toString(),
-      password: i.toString(),
+      password: "$2b$10$IPKfd5sD2qT2.HrfqC0EPuchQ4aJboIPYCVEro54KbGYl.TGLgZMm",
       email: faker.internet.email(),
       name: faker.name.findName(),
-      profilePicture: "",
-      about: faker.lorem.sentence(),
+      profilePicture: "/default_avatar.png",
+      about: "available",
     };
 
     users.push(user);

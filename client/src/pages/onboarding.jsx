@@ -3,10 +3,7 @@ import Avatar from "../components/common/Avatar";
 import Input from "../components/common/Input";
 import axios from "axios";
 import { onBoardUserRoute } from "../utils/ApiRoutes";
-
 import Resizer from "react-image-file-resizer";
-
-import Image from "next/image";
 import { useStateProvider } from "@/context/StateContext";
 import { useRouter } from "next/router";
 import { reducerCases } from "@/context/constants";
@@ -21,13 +18,14 @@ export default function OnBoarding() {
 
   const [image, setImage] = useState("/default_avatar.png");
   const [name, setName] = useState(userInfo?.name || "");
-  const [about, setAbout] = useState("");
+  const [about, setAbout] = useState(userInfo?.about || "");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
 
-
-    if (!newUser && !userInfo?.email) router.push("/login");
-    else if (!newUser && userInfo?.email) router.push("/");
+    const storedUserInfo = JSON.parse(localStorage.getItem('userInfo'));
+    if (!newUser && !storedUserInfo?.email) router.push("/login");
+    else if (!newUser && storedUserInfo?.email) router.push("/");
   }, [newUser, userInfo, router]);
 
   const resizeFile = (file) =>
@@ -50,30 +48,47 @@ export default function OnBoarding() {
     if (validateDetails()) {
       const email = userInfo?.email;
       const eId = userInfo?.eId;
+      const id = userInfo?.id;
       try {
         const base64Response = await fetch(`${image}`);
         const blob = await base64Response.blob();
         setImage(await resizeFile(blob));
+
+        localStorage.setItem('userPassword', JSON.stringify(password));
         const { data } = await axios.post(onBoardUserRoute, {
+          id,
           eId,
-	  email,
+	        email,
           name,
           about,
           image,
+          password,
         });
         if (data.status) {
           dispatch({ type: reducerCases.SET_NEW_USER, newUser: false });
-          dispatch({
+          await dispatch({
             type: reducerCases.SET_USER_INFO,
             userInfo: {
               id,
               eId,
               name,
               email,
-              profileImage: image,
+              profilePicture : image,
               status: about,
             },
           });
+
+          localStorage.setItem('userInfo', JSON.stringify({     
+            id,
+            eId,
+            name,
+            email,
+            profilePicture : image,
+            status: about,
+            isAdmin
+          }));
+          console.log("userinfo", userInfo);
+          console.log("localstogare", localStorage.userInfo);
 
           router.push("/");
         }
@@ -86,6 +101,10 @@ export default function OnBoarding() {
   const validateDetails = () => {
     if (name.length < 3) {
       // Toast Notification
+      alert("enter name, it should be 3 letter long atleast");
+      return false;
+    } else if(password.length < 6){
+      alert("Password should be atleast 6 digit long");
       return false;
     }
     return true;
@@ -105,6 +124,7 @@ export default function OnBoarding() {
         <div className="flex flex-col items-center justify-between mt-5 gap-6">
           <Input name="Display Name" state={name} setState={setName} label />
           <Input name="About" state={about} setState={setAbout} label />
+          <Input name="New Password" state={password} setState={setPassword} label />
           <div className="flex items-center justify-center">
             <button
               className="bg-search-input-container-background p-5 rounded-lg"

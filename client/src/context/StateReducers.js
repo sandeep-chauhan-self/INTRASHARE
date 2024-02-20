@@ -238,7 +238,7 @@ const reducer = (state, action) => {
       return {
         ...state,
         onlineUsers: action.onlineUsers,
-      };
+    };
 
     case reducerCases.SET_CONTACT_SEARCH: {
       const filteredContacts = state.userContacts.filter((contact) =>
