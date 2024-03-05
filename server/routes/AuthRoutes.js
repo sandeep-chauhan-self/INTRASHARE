@@ -2,7 +2,8 @@ import { Router } from "express";
 import {
   checkUser,
   getAllUsers,
-  onBoardUser
+  onBoardUser,
+  session
 } from "../controllers/AuthController.js";
 
 import {
@@ -19,6 +20,8 @@ router.post("/check-user", checkUser);
 
 // Route to onboard user
 router.post("/onBoardUser", onBoardUser);
+
+router.get("/session-route", session);
 
 // Route to get all users
 router.get("/get-contacts", getAllUsers);

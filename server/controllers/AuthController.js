@@ -4,18 +4,13 @@ import bcrypt from 'bcryptjs';
 function hashPassword(password, saltRounds) {
   return new Promise((resolve, reject) => {
     bcrypt.genSalt(saltRounds, function (err, salt) {
-      if (err) {
-        console.error(err);
-      } else {
+      if (err) console.error(err);
+      else 
         bcrypt.hash(password, salt, function(err, hash) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(hash);
-          }
-        })
-      }
-    })
+          if (err) reject(err);
+          else resolve(hash);
+        });
+    });
   });
 } 
 
@@ -44,31 +39,29 @@ async function checkPassword(plainPassword, hashedPassword) {
 }
 
  
-export const checkUser = async (request, response, next) => {
+export const checkUser = async (req, res, next) => {
   try {
-    var { eId, password } = request.body;
-    console.log(eId, password, "eId, password");
+    var { eId, password } = req.body;
     if (!eId) {
-      return response.json({ msg: "Employee ID is required", status: false });
+      return res.json({ msg: "Employee ID is required", status: false });
     }
     const prisma = getPrismaInstance();
     const user = await prisma.user.findFirst({ where: { eId } });
 
-    console.log("user in server ", user);
     if (!user) {
-      return response.json({ msg: "User not found", status: false });
+      return res.json({ msg: "User not found", status: false });
     } else if (!user.isActive) {
-      return response.json({ msg: "User not found", status: false });
+      return res.json({ msg: "User not found", status: false });
     } else {
-
-      console.log("password, bcryptPassword", password, user.password);
 
       checkPassword(password, user.password)
     .then(match => {
         if (match) {
-           return response.json({ msg: "User found", status: true, data: user });
+          req.session.userInfo = user;
+          console.log("req.session.userInfo", req.session.userInfo);
+           return res.json({ msg: "User found", status: true, onBoarding: user.onBoarding });
         } else {
-          return response.json({ msg: "Incorrect Passowrd", status: false });
+          return res.json({ msg: "Incorrect Passowrd", status: false });
         }
     });
     }
@@ -77,24 +70,30 @@ export const checkUser = async (request, response, next) => {
   }
 };
 
-export const onBoardUser = async (request, response, next) => {
+export const session = async (req, res, next) => {
   try {
-    var { eId, name, about = "Available", image: profilePicture, password } = request.body;
+    if (req.session.userInfo){
+      return res.json({ status: true, userInfo: req.session.userInfo });
+    }
+  } catch{
+    console.error(error);
+  }
+}
+
+export const onBoardUser = async (req, res, next) => {
+  try {
+    var { eId, name, about = "Available", image: profilePicture, password } = req.body;
     const prisma = getPrismaInstance();
 
-    console.log("password",password);
     const saltRounds = 10;
     const bcryptPassword = await hashPassword(password, saltRounds);
-
-    console.log(bcryptPassword);
     
-    console.log(request.body);
     await prisma.user.update({
       where: { eId: eId },
       data: { name, about, profilePicture, onBoarding: 1, password: bcryptPassword }
     });
 
-    return response.json({ msg: "Success", status: true });
+    return res.json({ msg: "Success", status: true });
   } catch (error) {
     next(error);
   }

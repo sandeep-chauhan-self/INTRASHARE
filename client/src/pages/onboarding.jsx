@@ -11,14 +11,23 @@ import { reducerCases } from "@/context/constants";
 export default function OnBoarding() {
   const router = useRouter();
 
-  const [{ userInfo, newUser }, dispatch] = useStateProvider();
+const [{ newUser }, dispatch] = useStateProvider();
+useEffect(() => {
+  axios
+  .get(FETCH_SESSION_ROUTE)
+  .then((res) => {
+    console.log("res", res);
 
-  console.log("user info on onboarding page: => ");
-  console.log(userInfo);
+  })
+  .catch((error) => {
+    console.log({ error });
+  });
+})
+
 
   const [image, setImage] = useState("/default_avatar.png");
-  const [name, setName] = useState(userInfo?.name || "");
-  const [about, setAbout] = useState(userInfo?.about || "");
+  const [name, setName] = useState(""); // || "");
+  const [about, setAbout] = useState(""); //userInfo?.about || "available");
   const [password, setPassword] = useState("");
 
   useEffect(() => {
@@ -54,7 +63,6 @@ export default function OnBoarding() {
         const blob = await base64Response.blob();
         setImage(await resizeFile(blob));
 
-        localStorage.setItem('userPassword', JSON.stringify(password));
         const { data } = await axios.post(onBoardUserRoute, {
           id,
           eId,
@@ -85,10 +93,8 @@ export default function OnBoarding() {
             email,
             profilePicture : image,
             status: about,
-            isAdmin
+            isAdmin :userInfo.isAdmin
           }));
-          console.log("userinfo", userInfo);
-          console.log("localstogare", localStorage.userInfo);
 
           router.push("/");
         }
